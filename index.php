@@ -1,5 +1,12 @@
 <?php
-header('Content-Type: text/html; charset=UTF-8'); 
+header('Content-Type: text/html; charset=UTF-8');
+if(isset($_GET['kw']) && isset($_GET['pin'])){
+	$kw=$_GET['kw'];
+	$pin=$_GET['pin'];
+}else{
+	$kw="";
+	$pin="";
+}
 ?>
 <html lang="es-ES" ng-app="lotomatic">
 	<head>
@@ -59,21 +66,23 @@ header('Content-Type: text/html; charset=UTF-8');
 				
 					<div ng-show="LotoCtrl.vista == 'login'" style="text-align:center">
 						<form novalidate name="loginForm">
-							<label style="color:#bbb">No es necesario registro<br/>sólo Palabra clave y Pin para<br/>almacenar boletos. ¡Invéntatelas!</label>
+							<label style="color:#bbb">No es necesario registro<br/>sólo una Palabra clave y un número pin para<br/>almacenar boletos. ¡Invéntatelas!</label>
 							<br/>
 							<br/>
-							<md-input-container class="md-block">
-								<label>Palabra clave</label>
-								<input name="user" ng-model="LotoCtrl.user" type="text" />
-							</md-input-container>
-							<md-input-container class="md-block">
-								<label>PIN</label>
-								<input required name="pin" ng-model="LotoCtrl.pin" type="num"/>
-							</md-input-container>
+							<div layout="row">
+								<md-input-container style="width:50%" class="md-block">
+									<label>Palabra clave</label>
+									<input ng-init="LotoCtrl.user = '<?Php echo $kw; ?>'" name="user" ng-model="LotoCtrl.user" type="text" />
+								</md-input-container>
+								<md-input-container class="md-block" flex>
+									<label>Número pin</label>
+									<input ng-init="LotoCtrl.pin ='<?Php echo $pin; ?>'"required name="pin" ng-model="LotoCtrl.pin" type="num"/>
+								</md-input-container>
+							</div>
 							<md-button class="md-raised" ng-click="LotoCtrl.login()">ENTRAR</md-button>
 							<br/>
 							<br/>
-							<label style="color:#bbb">Recuerda que debes usar la misma Palabra clave y el mismo Pin para ver los boletos guardados.</label>
+							<label style="color:#bbb">Recuerda que debes usar la misma Palabra clave y el mismo número pin para ver los boletos guardados.</label>
 							<br/>
 							<br/>
 							
@@ -88,52 +97,76 @@ header('Content-Type: text/html; charset=UTF-8');
 								<i class="material-icons">control_point</i>
 							</md-button>
 						</div>
+						
 						<form  ng-show="nuevo" novalidate name="nuevoBoleto" class="simple-form">
-							<md-input-container class="md-block" flex-xs>
-							<label>Tipo de boleto</label>
-							 <md-select ng-model="boletoTemp.juego">
+							<md-input-container ng-hide="boletoTemp.juego" class="md-block" flex-xs>
+							<label>Elija sorteo</label>
+							 <md-select  ng-model="boletoTemp.juego">
 								<md-option ng-repeat="juego in ['Euromillones', 'Primitiva'] track by $index" value="{{juego}}">
 								{{juego}}
 								</md-option>
 							</md-select>
 							</md-input-container>
-							<md-input-container class="md-block" flex-xs>
+							<md-input-container  ng-show="boletoTemp.juego" class="md-block" flex-xs>
 								<label>Etiqueta</label>
 								<input maxlength="10" name="etiqueta" ng-model="boletoTemp.etiqueta" type="text"/>
 							</md-input-container>
 							<div ng-show="boletoTemp.juego">
 								
 								<div ng-show="boletoTemp.juego=='Euromillones'" layout="column">
-									<div layout="row">
-										<md-input-container ng-repeat="n in range(1,5)" class="md-block" flex-xs>
-											<label>Num</label>
-											<input maxlength="2" name="num{{n}}" ng-model="boletoTemp.num[n]" type="tel" min="0" max="99" pattern="[0-9]*" />
-										</md-input-container>
+									<div>
+										<div class="inputTitle">NÚMEROS</div>
+										<div ng-repeat="n in range(1,50)">
+											<div id="inputNumEuromillones{{n}}" ng-click="LotoCtrl.numToInput(n, 'num', boletoTemp)" class="inputNum" >
+												{{n}}
+											</div>
+										</div>
+										<div style="clear:both"></div>
 									</div>
-									<div layout="row">
-										<md-input-container ng-repeat="n in range(1,2)" class="md-block" flex-xs>
-											<label>Estrella</label>
-											<input maxlength="2" name="star{{n}}" ng-model="boletoTemp.star[n]" type="tel" min="0" max="99" pattern="[0-9]*" />
-										</md-input-container>
+									<br/>
+									<div>
+										<div class="inputTitle">ESTRELLAS</div>
+										<div id="inputStarEuromillones{{n}}" ng-click="LotoCtrl.numToInput(n, 'star', boletoTemp)" class="inputNum" ng-repeat="n in range(1,11)">
+											{{n}}
+										</div>
+										<div style="clear:both"></div>
+									</div>
+									<div>
+										<div layout="row">
+											<input ng-repeat="n in range(1,5)" maxlength="2" name="num{{n}}" ng-model="boletoTemp.num[n]" type="hidden" min="1" max="50" pattern="[0-9]*" />
+											<input ng-repeat="n in range(1,2)" maxlength="2" name="star{{n}}" ng-model="boletoTemp.star[n]" type="hidden" min="1" max="11" pattern="[0-9]*" />
+										</div>
 									</div>
 								</div>
 
 								<div ng-show="boletoTemp.juego=='Primitiva'" layout="column">
-									<div layout="row">
-										<md-input-container ng-repeat="n in range(1,6)" class="md-block" flex-xs>
-											<label>Num</label>
-											<input maxlength="2" name="num{{n}}" ng-model="boletoTemp.num[n]" type="tel" min="0" max="99" pattern="[0-9]*" />
-										</md-input-container>
+									
+									<div>
+										<div class="inputTitle">NÚMEROS</div>
+										<div ng-repeat="n in range(1,49)">
+											<div id="inputNumPrimitiva{{n}}" ng-click="LotoCtrl.numToInput(n, 'num', boletoTemp)" class="inputNum" >
+												{{n}}
+											</div>
+										</div>
+										<div style="clear:both"></div>
 									</div>
-									<div layout="row">
-										<md-input-container style="width:30%"ng-repeat="n in range(1,1)" class="md-block">
-											<label>Reintegro</label>
-											<input maxlength="1" name="rein{{n}}" ng-model="boletoTemp.rein[n]" type="tel" min="0" max="9" pattern="[0-9]*" />
-										</md-input-container>
-										<md-input-container ng-repeat="n in range(1,1)" class="md-block" flex-xs>
-											<label>Joker</label>
-											<input maxlength="7" name="joker{{n}}" ng-model="boletoTemp.joker[n]" type="tel" min="0" max="99" pattern="[0-9]*" />
-										</md-input-container>
+									<br/>
+									<div>
+										<div class="inputTitle">REINTEGRO</div>
+										<div id="inputReinPrimitiva{{n}}" ng-click="LotoCtrl.numToInput(n, 'rein', boletoTemp)" class="inputNum" ng-repeat="n in range(0,9)">
+											{{n}}
+										</div>
+										<div style="clear:both"></div>
+									</div>
+									<div>
+										<div layout="row">
+											<input ng-repeat="n in range(1,6)" maxlength="2" name="num{{n}}" ng-model="boletoTemp.num[n]" type="hidden" min="1" max="49" pattern="[0-9]*" />
+											<input ng-repeat="n in range(0,0)" maxlength="1" name="rein{{n}}" ng-model="boletoTemp.rein[n]" type="hidden" min="0" max="9" pattern="[0-9]*" />
+											<md-input-container ng-repeat="n in range(1,1)" class="md-block" flex-xs>
+												<label>Joker</label>
+												<input maxlength="7" name="joker{{n}}" ng-model="boletoTemp.joker[n]" type="tel" min="0" max="99" pattern="[0-9]*" />
+											</md-input-container>
+										</div>
 									</div>
 								</div>
 								
@@ -149,7 +182,7 @@ header('Content-Type: text/html; charset=UTF-8');
 								</md-button>
 								</span>
 							
-								<md-button class="md-fab md-mini md-primary" ng-click="nuevo = !nuevo">
+								<md-button  ng-hide="boletoTemp.juego" class="md-fab md-mini md-primary" ng-click="nuevo = !nuevo">
 									<i class="material-icons">clear</i>
 								</md-button>
 							</div>
@@ -217,6 +250,33 @@ header('Content-Type: text/html; charset=UTF-8');
 			.tablaDetalle td{
     			padding: 3px;
     			border-left: 1px solid #888;
+			}
+			.inputTitle{
+				background: rgb(63,81,181);
+				text-align: center;
+				padding: 3px;
+				color: white;
+				font-weight: bold;
+				font-size: 12px;
+				margin-bottom: 2px;
+			}
+			.inputNum{
+				padding: 5px;
+				height:15px;
+				width:15px;
+				text-align: center;
+				float: left;
+				margin: 2px;
+				color: rgb(63,81,181);
+				border:1px solid rgb(63,81,181);
+				font-weight: bold;
+				font-size: 12px;
+			}
+			.inputNum.selected{
+				color:white;
+				background-color: rgb(63,81,181);
+				border:1px solid rgb(63,81,181);
+
 			}
 		</style>
 	</body>

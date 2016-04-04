@@ -186,6 +186,7 @@
 				loto.juegoTitulo="Mis boletos";
 				loto.vista = 'misBoletos';
 				loto.boletos = getBoletos(loto);
+				loto.loading=false;
 			}
 		}
 
@@ -193,18 +194,15 @@
 			// Example with 1 argument
 			$scope.boleto= angular.copy(boletoTemp);
 		};
-		
-		this.update = function(boletoTemp) {
-			// Example with 1 argument
-			$scope.boleto= angular.copy(boletoTemp);
-		};
 
 		this.reset = function() {
+			angular.element(".inputNum.selected").removeClass("selected");
 			$scope.boletoTemp = {};
 		};
 
 
 		this.guardarBoleto = function(boletoTemp){
+			loto.loading=true;
 			loto.kw = $cookies.get('kw');
 			loto.pin = $cookies.get('pin');
 			var request = $http({
@@ -217,7 +215,9 @@
 			request.success(function (data) {
 				loto.boletos = getBoletos(loto);
 				$scope.boletoTemp = {};
+				angular.element(".inputNum.selected").removeClass("selected");
 				$scope.nuevo = false;
+				loto.loading=false;
 			});
 		};
 
@@ -226,8 +226,10 @@
 			loto.pin = $cookies.get('pin');
 			$http.get("update_json.php?kw="+kw+"&pin="+pin+"&boletoId="+boletoId).success(function(data){
 				loto.boletos = getBoletos(loto);
+
 			});
 		};
+
 		$scope.range = function(min, max, step) {
 			step = step || 1;
 			var input = [];
@@ -261,6 +263,58 @@
 		{
 			loto.getCombisByGame('04');
 		}
+
+		this.numToInput = function(val, input, boletoTemp){			
+			if(input=="num"){
+				if(!boletoTemp.num){boletoTemp.num=[];}
+				if(boletoTemp.juego=="Euromillones"){numeros=4;}
+				else if(boletoTemp.juego=="Primitiva"){numeros=5;}
+				for(n=0;n<=numeros;n++){
+					if(boletoTemp.num[n]==val){
+						boletoTemp.num[n]="";
+						angular.element("#inputNum"+boletoTemp.juego+val).removeClass("selected");
+						return false;
+					}
+				}
+				for(n=0;n<=numeros;n++){
+					if(boletoTemp.num[n]==null || boletoTemp.num[n]==""){
+						$scope.boletoTemp.num[n]=val;
+						angular.element("#inputNum"+boletoTemp.juego+val).addClass("selected");
+						return false;
+					}
+				}
+			}else if(input=="star"){
+				if(!boletoTemp.star){boletoTemp.star=[];}
+				for(n=0;n<=1;n++){
+					if(boletoTemp.star[n]==val){
+						boletoTemp.star[n]="";
+						angular.element("#inputStar"+boletoTemp.juego+val).removeClass("selected");
+						return false;
+					}
+				}
+				for(n=0;n<=1;n++){
+					if(boletoTemp.star[n]==null || boletoTemp.star[n]==""){
+						$scope.boletoTemp.star[n]=val;
+						angular.element("#inputStar"+boletoTemp.juego+val).addClass("selected");
+						return false;
+					}
+				}
+			}else if(input=="rein"){
+				if(!boletoTemp.rein){boletoTemp.rein=[];}
+				if(val==0){val="0";}
+				if(boletoTemp.rein[0]==val){
+					boletoTemp.rein[0]="";
+					angular.element("#inputRein"+boletoTemp.juego+val).removeClass("selected");
+					return false;
+				}			
+				if(boletoTemp.rein[0]==null || boletoTemp.rein[0]==""){
+					$scope.boletoTemp.rein[0]=val;
+					angular.element("#inputRein"+boletoTemp.juego+val).addClass("selected");
+					return false;
+				}
+				
+			}
+		};
 		this.aciertos = function(resId, bolId, theGame)
 		{
 			//return loto.boletos[resId];
